@@ -759,7 +759,8 @@
 
 
         //Escenario
-        loaderGLTF.load('./Escena.glb', function (gltf) {
+        const parcelPath = new URL('./Escena.glb', import.meta.url);
+        loaderGLTF.load(parcelPath.href, function (gltf) {
             const obj = gltf.scene;
             obj.scale.set(9, 9, 9);
             obj.position.set(3, 0, -5);
