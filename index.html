@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button id="button-login">Login</button>
+    <button id="button-logout">Logout</button>
+
+    <script type="module">
+        import * as THREE from "./three.module.js";
+        import { OrbitControls } from "./OrbitControls.js";
+        import { GLTFLoader } from "./GLTFLoader.js";
+        import { FBXLoader } from "./FBXLoader.js";
+        import { OBJLoader } from "./OBJLoader.js";
+
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-app.js";
+        import {
+            getAuth,
+            signInWithPopup,
+            GoogleAuthProvider,
+            signOut
+        } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-auth.js";
+
+
+        import {
+            getDatabase,
+            ref,
+            onValue,
+            set
+        } from "https://www.gstatic.com/firebasejs/9.18.0/firebase-database.js";
+
+
+        // TODO: Add SDKs for Firebase products that you want to use
+
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+
+        // Your web app's Firebase configuration
+
+        const firebaseConfig = {
+
+            apiKey: "AIzaSyAEh_zHvY4f8WKzchaP3Fxl8pEmpx-Ia_k",
+
+            authDomain: "gcw-db.firebaseapp.com",
+
+            databaseURL: "https://gcw-db-default-rtdb.firebaseio.com",
+
+            projectId: "gcw-db",
+
+            storageBucket: "gcw-db.appspot.com",
+
+            messagingSenderId: "998855865470",
+
+            appId: "1:998855865470:web:2de610a99899978689542f"
+
+        };
+
+
+        // Initialize Firebase
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth();
+        auth.languageCode = "es";
+        const provider = new GoogleAuthProvider();
+        const db = getDatabase();
+        let currentUser;
+
+        async function login() {
+            const res = await signInWithPopup(auth, provider)
+                .then((result) => {
+                    // This gives you a Google Access Token. You can use it to access the Google API.
+                    const credential = GoogleAuthProvider.credentialFromResult(result);
+                    const token = credential.accessToken;
+                    // The signed-in user info.
+                    const user = result.user;
+                    currentUser = user;
+                    console.log(user);
+                    writeUserData(user.uid, { x: 0, z: 0 });
+                    // IdP data available using getAdditionalUserInfo(result)
+                    // ...
+                }).catch((error) => {
+                    // Handle Errors here.
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // The AuthCredential type that was used.
+                    const credential = GoogleAuthProvider.credentialFromError(error);
+                    // ...
+                    console.log(errorMessage);
+                });
+        }
+
+        const buttonLogin = document.getElementById("button-login");
+        const buttonLogout = document.getElementById("button-logout");
+
+        buttonLogin.addEventListener("click", async () => {
+            const user = await login();
+        });
+
+        buttonLogout.addEventListener("click", async () => {
+            signOut(auth).then(() => {
+                // Sign-out successful.
+                console.log("se salio");
+            }).catch((error) => {
+                console.log(error);
+            });
+        });
+
+
+        const starCountRef = ref(db, "jugador");
+        onValue(starCountRef, (snapshot) => {
+            const data = snapshot.val();
+            console.log(data);
+            Object.entries(data).forEach(([key, value]) => {
+                const jugador = scene.getObjectByName(key);
+                if (!jugador) {
+                    // const geometry = new THREE.BoxGeometry(1, 1, 1);
+                    // const material = new THREE.MeshPhongMaterial();
+                    // const mesh = new THREE.Mesh(geometry, material);
+                    // mesh.castShadow = true;
+                    // mesh.position.set(value.x, 1, value.z);
+                    // mesh.material.color = new THREE.Color(Math.random * 0xffffff);
+                    // mesh.name = key;
+                    // scene.add(mesh);
+
+
+                    var geometry = new THREE.SphereGeometry(0.2, 32, 16);
+                    var material = new THREE.MeshBasicMaterial({
+                        map: new THREE.TextureLoader().load(
+                            './textures/pelota.jpg'
+                        )
+                    });
+
+                    var mesh = new THREE.Mesh( geometry, material );
+                    mesh.castShadow = true;
+                    mesh.position.set(value.x, 1, value.z);
+                    mesh.scale.set(2,2,2);
+                    mesh.name = key;
+                    scene.add( mesh );
+
+                    // loaderGLTF.load('./models/ball.glb', function (gltf) {
+                    //     const obj = gltf.scene;
+                    //     obj.name = key;
+                    //     console.log(obj.name)
+                    //     obj.scale.set(0.3, 0.3, 0.3);
+                    //     obj.position.set(value.x, 0, value.z);
+                    //     console.log(key);
+                    //     scene.add(obj);
+                    //     console.log(key);
+                    //     scene.getObjectByName(key).position.x = value.x;
+                    //     scene.getObjectByName(key).position.z = value.z;
+                    // });
+
+                }
+
+                scene.getObjectByName(key).position.x = value.x;
+                scene.getObjectByName(key).position.z = value.z;
+
+
+
+            });
+        });
+
+
+        function writeUserData(userId, position) {
+            set(ref(db, "jugador/" + userId), {
+                x: position.x,
+                z: position.z
+            });
+        }
+
+        // SCENE
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color("#34495E");
+
+        const camera = new THREE.PerspectiveCamera(
+            60,
+            window.innerWidth / window.innerHeight
+        );
+
+        camera.position.set(0, 0, 10);
+
+
+
+
+        //Luces
+        const hemispherelight = new THREE.HemisphereLight(0xffffbb, 0x080820, 1);
+
+        const directionalLight = new THREE.DirectionalLight(0xFFFFFF, 0.3);
+        directionalLight.position.set(1, 5, -1);
+        directionalLight.castShadow = true;
+
+
+
+        const cube1Geometry = new THREE.BoxGeometry(1, 1, 1);
+        const cube1Material = new THREE.MeshPhongMaterial({ color: "aqua" });
+        const cube1 = new THREE.Mesh(cube1Geometry, cube1Material);
+        cube1.position.set(3, 0, 0);
+        cube1.castShadow = true;
+
+        const cube1BB = new THREE.Box3();
+        cube1BB.setFromObject(cube1);
+
+        const cube2Geometry = new THREE.BoxGeometry(1, 1, 1);
+        const cube2Material = new THREE.MeshPhongMaterial({ color: "coral" });
+        const cube2 = new THREE.Mesh(cube2Geometry, cube2Material);
+        cube2.position.set(-3, 0, 0);
+        cube2.castShadow = true;
+
+        const cube2BB = new THREE.Box3();
+        cube2BB.setFromObject(cube2);
+
+        // const bbGeometry = new THREE.BoxGeometry(1.5, 1.5, 1.5);
+        // const bbMaterial = new THREE.MeshBasicMaterial();
+        // const bb = new THREE.Mesh(bbGeometry, bbMaterial);
+        // bb.position.set(3, 0, 0);
+        // const box = new THREE.BoxHelper(bb, 0xff0000);
+
+        const sphereGeometry = new THREE.SphereGeometry(1);
+        const sphereMaterial = new THREE.MeshPhongMaterial({ color: "teal" });
+        const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+        sphere.position.set(0, 0, 0);
+        sphere.castShadow = true;
+
+        const sphereBB = new THREE.Sphere(sphere.position, 1);
+
+
+        // const planeGeometry = new THREE.PlaneGeometry(50, 50);
+        // const planeMaterial = new THREE.MeshStandardMaterial({ color: "slategrey" });
+        // const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+        // plane.position.set(0, -0.5, 0);
+        // plane.rotateX(-Math.PI / 2);
+        // plane.receiveShadow = true;
+
+        const geometry = new THREE.PlaneGeometry(100, 100); // width, height, no depth for plane
+        var texture2 = new THREE.TextureLoader().load(
+            "./textures/grass.jpg"
+        ); // remove color = ...
+        texture2.wrapS = THREE.RepeatWrapping;
+        texture2.wrapT = THREE.RepeatWrapping;
+        texture2.repeat.x = 20;
+        texture2.repeat.y = 20;
+
+        const material = new THREE.MeshBasicMaterial({
+            color: 0xeba6f5,
+            side: THREE.DoubleSide,
+            map: texture2 // texture as a map for material
+        });
+        const plane = new THREE.Mesh(geometry, material); // mesh takes just two parameters
+        plane.rotation.x = Math.PI / 2;
+
+        scene.add(hemispherelight, plane, directionalLight);
+
+
+
+        const loader = new THREE.CubeTextureLoader();
+
+        const texture = loader.load(['./textures/Box_Right.jpg',
+            './textures/Box_Left.jpg',
+            './textures/Box_Top.jpg',
+            './textures/Box_Bottom.jpg',
+            './textures/Box_Front.jpg',
+            './textures/Box_Back.jpg',]);
+
+        scene.background = texture;
+        document.onkeydown = function (e) {
+            console.log(e);
+            const jugardorActual = scene.getObjectByName(currentUser.uid);
+            console.log(jugardorActual);
+
+            if (e.keyCode === 39) {
+                jugardorActual.position.x += 1;
+                jugardorActual.rotation.y -= 1;
+                camera.position.x += 1;
+            }
+
+            if (e.keyCode === 37) {
+                jugardorActual.position.x -= 1;
+                jugardorActual.rotation.y += 1;
+                camera.position.x -= 1;
+            }
+
+            if (e.keyCode === 38) {
+                jugardorActual.position.z -= 1;
+                jugardorActual.rotation.x += 1;
+                camera.position.z -= 1;
+            }
+
+            if (e.keyCode === 40) {
+                jugardorActual.position.z += 1;
+                jugardorActual.rotation.x -= 1;
+                camera.position.z += 1;
+            }
+
+            writeUserData(currentUser.uid, jugardorActual.position);
+
+        };
+
+        //Renderer
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        document.body.appendChild(renderer.domElement);
+
+        const cameraControl = new OrbitControls(camera, renderer.domElement);
+
+        function resize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.render(scene, camera);
+        }
+
+        window.addEventListener("resize", resize);
+
+        function checkCollisions() {
+            if (cube2BB.containsBox(cube1BB)) {
+                cube1.scale.y = 3;
+            } else {
+                cube1.scale.y = 1;
+            }
+
+            if (cube2BB.intersectsBox(cube1BB)) {
+                cube1.material.color = new THREE.Color("red");
+            } else {
+                cube1.material.color = new THREE.Color("aqua");
+            }
+
+            if (cube2BB.intersectsSphere(sphereBB)) {
+                sphere.material.wireframe = true;
+            } else {
+                sphere.material.wireframe = false;
+            }
+        }
+
+
+        const loaderGLTF = new GLTFLoader();
+        var pelota;
+        //Fence //Temporal
+        // loaderGLTF.load('./models/fence.glb', function (gltf) {
+        //     const obj = gltf.scene;
+        //     pelota = obj;
+        //     obj.scale.set(13, 13, 13);
+        //     obj.position.set(6, 0, 0);
+        //     scene.add(obj);
+        // });
+
+        // //Pelota
+        // loaderGLTF.load('./models/ball.glb', function (gltf) {
+        //     const obj = gltf.scene;
+        //     obj.scale.set(0.3, 0.3, 0.3);
+        //     obj.position.set(0, 1, 0);
+        //     scene.add(obj);
+        // });
+
+        //Coin
+        loaderGLTF.load('./models/shiba_coin.glb', function (gltf) {
+            const obj = gltf.scene;
+            obj.scale.set(1, 1, 1);
+            obj.position.set(2, 1, 0);
+            scene.add(obj);
+        });
+
+        //Shiba
+        loaderGLTF.load('./models/shiba/shiba_nf.glb', function (gltf) {
+            const obj = gltf.scene;
+            obj.scale.set(0.3, 0.3, 0.3);
+            obj.position.set(4, 1, 0);
+            scene.add(obj);
+        });
+
+        //Shiba
+        loaderGLTF.load('./models/escenario3.glb', function (gltf) {
+            const obj = gltf.scene;
+            obj.scale.set(9, 9, 9);
+            obj.position.set(3, 0, -5);
+            scene.add(obj);
+        });
+
+        //Big tree
+        loaderGLTF.load('./models/big_tree.glb', function (gltf) {
+            const obj = gltf.scene;
+            obj.scale.set(1, 1, 1);
+            obj.position.set(-8, 0, -12);
+            scene.add(obj);
+        });
+
+        //Arbol
+        loaderGLTF.load('./models/tree_nf.glb', function (gltf) {
+            const obj = gltf.scene;
+            obj.scale.set(4, 4, 4);
+            obj.position.set(-6, 0, 0);
+            scene.add(obj);
+        });
+
+        //-------------     Power upssss        --------------
+
+        loaderGLTF.load('./models/powerups/defense.glb', function (gltf) {
+            const obj = gltf.scene;
+            obj.scale.set(0.002, 0.002, 0.002);
+            obj.position.set(-3, 1.8, -5);
+            scene.add(obj);
+        });
+
+        loaderGLTF.load('./models/powerups/speed.glb', function (gltf) {
+            const obj = gltf.scene;
+            obj.scale.set(0.3, 0.3, 0.3);
+            obj.position.set(-6, 1.8, -5);
+
+            scene.add(obj);
+        });
+
+        loaderGLTF.load('./models/powerups/strength.glb', function (gltf) {
+            const obj = gltf.scene;
+            obj.scale.set(0.6, 0.6, 0.6);
+            obj.position.set(6, 1.8, -5);
+            scene.add(obj);
+        });
+
+        // const fbxLoader = new FBXLoader();
+        // // fbxLoader.load(
+        // //     './models/Escenario2.fbx',
+        // //     (object) => {
+        // //         // object.traverse(function (child) {
+        // //         //     if ((child as THREE.Mesh).isMesh) {
+        // //         //         // (child as THREE.Mesh).material = material
+        // //         //         if ((child as THREE.Mesh).material) {
+        // //         //             ((child as THREE.Mesh).material as THREE.MeshBasicMaterial).transparent = false
+        // //         //         }
+        // //         //     }
+        // //         // })
+        // //         object.scale.set(3, 3, 3)
+        // //         object.position.set(0,0,-100)
+        // //         scene.add(object)
+        // //     },
+        // //     (xhr) => {
+        // //         console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+        // //     },
+        // //     (error) => {
+        // //         console.log(error)
+        // //     }
+        // // )
+
+        // fbxLoader.load('./models/Escenario2.fbx', function (object) {
+        //     object.traverse(function(child){
+        //         if(child.isMesh){
+        //             child.castShadow = true;
+        //             child.receiveShadow = true;
+        //         }
+        //     });
+        //     scene.add(object);
+        // });
+
+
+
+
+
+        function animate() {
+            cube2BB
+                .copy(cube2.geometry.boundingBox)
+                .applyMatrix4(cube2.matrixWorld);
+            checkCollisions();
+            renderer.render(scene, camera);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,16 @@
+body{
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+   background-image: url("/Imagenes/Prueba2.svg");
+   /* background-position: center center; */
+   background-repeat: no-repeat;
+   background-attachment: fixed;
+   background-size: cover;
+   justify-content: center;
+   align-items: center;
+}
+
+.row img{
+    width: 800px;
+}

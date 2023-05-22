@@ -1,0 +1,27 @@
+# 
+# Wavefront material file
+# Created with Kaydara FBX
+# 
+
+newmtl Bolsas:MI_Sandbag_Barrier_udtvegsfa_2K1
+map_Kd MI_Sandbag_Barrier_udtvegsfa_2K_D.bmp
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+illum 2
+Ns 20.000000
+Tr 1.000000
+
+newmtl lambert14
+map_Kd MI_Gravel_Ground_xbnfagf_2K_D.bmp
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+illum 1
+Tr 1.000000
+
+newmtl lambert13
+map_Kd MI_Mossy_Brick_Wall_vgvmajz_2K_D.bmp
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+illum 1
+Tr 1.000000

@@ -1,0 +1,25 @@
+# 
+# Wavefront material file
+# Created with Kaydara FBX
+# 
+
+newmtl lambert10
+map_Kd MI_Weathered_Wooden_Planks_ulxqcedaw_2K_D.bmp
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+illum 1
+Tr 1.000000
+
+newmtl lambert11
+map_Kd MI_Light_Blue_Grout_piiertp0_2K_D.bmp
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+illum 1
+Tr 1.000000
+
+newmtl lambert9
+map_Kd MI_Trampled_Beach_Sand_vmghdejo_2K_D.bmp
+Ka 0.000000 0.000000 0.000000
+Kd 0.800000 0.800000 0.800000
+illum 1
+Tr 1.000000
